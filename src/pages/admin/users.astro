@@ -1,0 +1,12 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { UserManagement } from '@/components/UserManagement';
+import { DataSync } from '@/components/DataSync';
+---
+
+<DashboardLayout title="User Management - Admin Portal">
+  <DataSync client:only="react" />
+  <div class="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-700">
+    <UserManagement client:only="react" />
+  </div>
+</DashboardLayout>

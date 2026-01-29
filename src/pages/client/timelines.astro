@@ -1,0 +1,10 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { Timelines as TimelineCalculator } from '@/components/Timelines';
+import { DataSync } from '@/components/DataSync';
+---
+
+<DashboardLayout title="Timelines - Strata Reserve Planning">
+    <DataSync client:only="react" />
+    <TimelineCalculator client:only="react" />
+</DashboardLayout>

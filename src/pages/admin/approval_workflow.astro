@@ -1,0 +1,15 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { AppointmentReview } from '@/components/AppointmentReview';
+---
+
+<DashboardLayout title="Appointment Approvals - SRP Admin">
+  <div class="max-w-6xl mx-auto py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Appointment Approvals</h1>
+      <p class="text-gray-500 mt-2">Review pending inspection requests and assign inspectors.</p>
+    </div>
+
+    <AppointmentReview client:load />
+  </div>
+</DashboardLayout>

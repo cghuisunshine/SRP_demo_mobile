@@ -1,0 +1,26 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { StrataDetail } from '@/components/StrataDetail';
+
+export function getStaticPaths() {
+    return [
+        { params: { id: 'strata-1' } },
+        { params: { id: 'strata-2' } },
+        { params: { id: 'strata-3' } },
+    ];
+}
+
+const { id } = Astro.params;
+
+// In a real SSR scenario, we could fetch here. 
+// However, since we're using React for the interactive bits, 
+// we'll pass the ID and let the client fetch, OR fetch via a direct DB call if we wanted SSR.
+// For the Vercel demo with client-side focus, we can just render the shell.
+
+---
+
+<DashboardLayout title="Strata Detail - Admin">
+    <div class="p-6">
+        <StrataDetail client:only="react" id={id || ''} />
+    </div>
+</DashboardLayout>

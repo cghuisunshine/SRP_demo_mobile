@@ -1,0 +1,21 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { InspectionExecution } from '@/components/InspectionExecution';
+
+export function getStaticPaths() {
+    // In a real app with SSR, this wouldn't be needed for dynamic routes.
+    // For manual testing, we just generate one ID.
+    return [
+        { params: { id: 'insp-1' } },
+        { params: { id: 'insp-2' } },
+    ];
+}
+
+const { id } = Astro.params;
+---
+
+<DashboardLayout title={`Inspection Job ${id} - SRP`}>
+    <div class="px-6 py-8">
+        <InspectionExecution client:load jobId={id || 'unknown'} />
+    </div>
+</DashboardLayout>

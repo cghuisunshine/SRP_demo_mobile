@@ -1,0 +1,15 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { ClientUsers } from '@/components/ClientUsers';
+---
+
+<DashboardLayout title="Contact Management - SRP">
+  <div class="max-w-5xl mx-auto py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Contact Management</h1>
+      <p class="text-gray-500 mt-2">Manage the key personnel and site contacts for your strata.</p>
+    </div>
+
+    <ClientUsers client:load />
+  </div>
+</DashboardLayout>

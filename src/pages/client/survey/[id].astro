@@ -1,0 +1,31 @@
+---
+import { getCollection } from 'astro:content';
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { SurveyEngine } from '@/components/SurveyEngine';
+
+export async function getStaticPaths() {
+  const surveyEntries = await getCollection('surveys');
+  return surveyEntries.map(entry => ({
+    params: { id: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+---
+
+<DashboardLayout title={`${entry.data.title} Survey - SRP`}>
+  <div class="max-w-4xl mx-auto py-8">
+    <div class="mb-8">
+      <a href="/client/dashboard" class="text-sm text-gray-400 hover:text-[#6B8E5F] transition-colors flex items-center gap-2 mb-4">
+        ← Back to Dashboard
+      </a>
+    </div>
+
+    <SurveyEngine 
+      client:load 
+      sectionId={entry.slug} 
+      initialQuestions={entry.data.questions} 
+    />
+  </div>
+</DashboardLayout>

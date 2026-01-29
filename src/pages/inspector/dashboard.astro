@@ -1,0 +1,10 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { InspectorDashboard } from '@/components/InspectorDashboard';
+---
+
+<DashboardLayout title="Inspector Dashboard - SRP">
+    <div class="px-6 py-8">
+        <InspectorDashboard client:load />
+    </div>
+</DashboardLayout>

@@ -1,0 +1,15 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { AdminSettings } from '@/components/AdminSettings';
+---
+
+<DashboardLayout title="System Settings - SRP Admin">
+  <div class="max-w-6xl mx-auto py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">System Settings</h1>
+      <p class="text-gray-500 mt-2">Manage company holidays, global inspector availability, and core system configurations.</p>
+    </div>
+
+    <AdminSettings client:load />
+  </div>
+</DashboardLayout>

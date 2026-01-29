@@ -1,0 +1,24 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { ProjectSummary } from '@/components/ProjectSummary';
+import { SurveyHub } from '@/components/SurveyHub';
+import { DataSync } from '@/components/DataSync';
+---
+
+<DashboardLayout title="Client Dashboard - Strata Reserve Planning">
+  <DataSync client:only="react" />
+  
+  <div class="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+    <!-- Project Header -->
+    <ProjectSummary client:only="react" />
+
+    <!-- Survey Hub & Content -->
+    <div class="space-y-6">
+      <div class="flex items-center justify-between px-2">
+        <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Project Explorer</h3>
+        <span class="h-px bg-gray-100 flex-grow mx-6"></span>
+      </div>
+      <SurveyHub client:only="react" />
+    </div>
+  </div>
+</DashboardLayout>
