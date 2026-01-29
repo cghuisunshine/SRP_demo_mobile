@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, Save, MapPin } from 'lucide-react';
 import type { Strata } from '@/lib/types';
+import { withBase } from '@/lib/base';
 
 interface StrataDetailProps {
     id: string;
@@ -52,7 +53,7 @@ export function StrataDetail({ id, initialData }: StrataDetailProps) {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => window.location.href = '/admin/stratas'}>
+                    <Button variant="ghost" size="icon" onClick={() => window.location.href = withBase('/admin/stratas')}>
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>

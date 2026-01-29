@@ -2,13 +2,15 @@
 import DashboardLayout from '@/layouts/DashboardLayout.astro';
 import { ClientProfileView } from '@/components/ClientProfileView';
 import { DataSync } from '@/components/DataSync';
+
+const base = import.meta.env.BASE_URL;
 ---
 
 <DashboardLayout title="Strata Profile - Strata Reserve Planning">
   <DataSync client:only="react" />
   <div class="p-8">
     <div class="mb-8 max-w-5xl mx-auto">
-        <a href="/client/dashboard" class="text-sm font-medium text-[#6B8E5F] hover:underline mb-2 block">← Back to Hub</a>
+        <a href={`${base}client/dashboard`} class="text-sm font-medium text-[#6B8E5F] hover:underline mb-2 block">← Back to Hub</a>
         <h1 class="text-4xl font-black text-gray-900 mb-2">My Strata Profile</h1>
         <p class="text-lg text-gray-600">Please verify your building information and personnel details to ensure report accuracy.</p>
     </div>

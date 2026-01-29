@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SurveySection } from '@/lib/types';
+import { withBase } from '@/lib/base';
 
 interface HubTileProps {
     title: string;
@@ -47,7 +48,7 @@ function HubTile({ title, description, progress, icon, href, className, tags }: 
             "group relative overflow-hidden transition-all hover:shadow-md border-[#6B8E5F]/10 hover:border-[#6B8E5F]/30 h-full",
             className
         )}>
-            <a href={href} className="block h-full p-6">
+            <a href={withBase(href)} className="block h-full p-6">
                 <div className="flex items-start justify-between mb-4">
                     <div className="p-3 bg-[#6B8E5F]/5 rounded-xl text-[#6B8E5F] group-hover:bg-[#6B8E5F] group-hover:text-white transition-colors">
                         <Icon size={24} />

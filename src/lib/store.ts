@@ -347,6 +347,7 @@ export const useStore = create<AppState>()(
             partialize: (state: AppState) => ({
                 auth: state.auth,
                 surveyResponses: state.surveyResponses,
+                documents: state.documents,
             } as any),
         }
     )

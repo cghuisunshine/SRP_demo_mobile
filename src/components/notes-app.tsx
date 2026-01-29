@@ -33,7 +33,7 @@ export function NotesApp(): React.JSX.Element {
   const [editTitle, setEditTitle] = React.useState('')
   const [editContent, setEditContent] = React.useState('')
 
-  const API_BASE = `http://${import.meta.env.PUBLIC_HOST ?? 'localhost:3000'}/api`
+  const API_BASE = `/api`
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = React.useState('')

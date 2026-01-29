@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from './ui/checkbox';
 import { useStore } from '@/lib/store';
 import { Shield, Building2, MapPin, CheckCircle2 } from 'lucide-react';
+import { withBase } from '@/lib/base';
 
 export function PropertyProfile() {
     const { currentStrata, fetchStrata, updateStrata, auth } = useStore();
@@ -62,7 +63,7 @@ export function PropertyProfile() {
                         </p>
                     </div>
                     <Button
-                        onClick={() => window.location.href = '/client/dashboard'}
+                        onClick={() => window.location.href = withBase('/client/dashboard')}
                         className="bg-[#6B8E5F] hover:bg-[#5a7850] px-8"
                     >
                         Return to Hub

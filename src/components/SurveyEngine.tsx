@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Progress } from './ui/progress';
 import { ChevronLeft, Save, CheckCircle2 } from 'lucide-react';
 import type { SurveyQuestion } from '@/lib/types';
+import { withBase } from '@/lib/base';
 
 interface SurveyEngineProps {
     sectionId: string;
@@ -119,7 +120,7 @@ export function SurveyEngine({ sectionId, initialQuestions = [] }: SurveyEngineP
                     <p className="mt-2 text-green-100">Your answers have been saved and progress updated.</p>
                 </div>
                 <CardFooter className="p-8 text-center justify-center">
-                    <Button onClick={() => window.location.href = '/client/dashboard'} className="bg-[#6B8E5F] hover:bg-[#5a7850]">
+                    <Button onClick={() => window.location.href = withBase('/client/dashboard')} className="bg-[#6B8E5F] hover:bg-[#5a7850]">
                         Return to Dashboard
                     </Button>
                 </CardFooter>

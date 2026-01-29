@@ -4,6 +4,9 @@ interface Props {
 }
 
 const { title } = Astro.props
+
+const base = import.meta.env.BASE_URL
+const isDemo = import.meta.env.PUBLIC_DEMO_MODE === '1'
 ---
 
 <!doctype html>
@@ -12,11 +15,17 @@ const { title } = Astro.props
     <meta charset="UTF-8" />
     <meta name="description" content="Axum driven astro" />
     <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/_static/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={`${base}_static/favicon.svg`} />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
   <body>
+    {isDemo && (
+      <script>
+        import { installMockApi } from '../lib/mockApi'
+        installMockApi()
+      </script>
+    )}
     <div class="main"><div class="content"></div></div>
     <slot />
   </body>
@@ -60,7 +69,7 @@ const { title } = Astro.props
 
   .main:after {
     content: '';
-    background-image: url('/_static/grid.svg');
+    background-image: url('${base}_static/grid.svg');
     z-index: 1;
     position: absolute;
     width: 100%;

@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, MapPin, CheckCircle2, Navigation, AlertCircle } from 'lucide-react';
+import { withBase } from '@/lib/base';
 
 interface Inspection {
     id: string;
@@ -90,7 +91,7 @@ export function InspectorDashboard() {
                     </CardContent>
                 </Card>
 
-                <Card className="border-gray-100 shadow-sm cursor-pointer hover:border-[#6B8E5F]/30 transition-colors group" onClick={() => window.location.href = '/inspector/availability'}>
+                <Card className="border-gray-100 shadow-sm cursor-pointer hover:border-[#6B8E5F]/30 transition-colors group" onClick={() => window.location.href = withBase('/inspector/availability')}>
                     <CardContent className="p-6 flex items-center justify-between">
                         <div>
                             <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Availability</p>
@@ -150,7 +151,7 @@ export function InspectorDashboard() {
 
                                 {activeTab === 'Upcoming' && (
                                     <div className="flex items-center gap-3">
-                                        <Button variant="outline" className="border-gray-200 hover:bg-gray-50" onClick={() => window.location.href = `/inspector/job/${insp.id}`}>
+                                        <Button variant="outline" className="border-gray-200 hover:bg-gray-50" onClick={() => window.location.href = withBase(`/inspector/job/${insp.id}`)}>
                                             Start Inspection
                                         </Button>
                                         <Button

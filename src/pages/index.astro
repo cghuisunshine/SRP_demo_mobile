@@ -1,0 +1,10 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { LoginForm } from '@/components/LoginForm';
+---
+
+<BaseLayout title="Strata Reserve Planning">
+  <main class="min-h-screen bg-[#6B8E5F] flex items-center justify-center p-6">
+    <LoginForm client:only="react" />
+  </main>
+</BaseLayout>

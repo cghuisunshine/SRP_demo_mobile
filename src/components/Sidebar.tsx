@@ -3,6 +3,7 @@ import { useStore } from '@/lib/store';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useState, useEffect } from 'react';
+import { stripBase, withBase } from '@/lib/base';
 
 interface NavItem {
     label: string;
@@ -57,7 +58,7 @@ export function Sidebar() {
                 clientNav;
 
     const [isSurveyOpen, setIsSurveyOpen] = useState(false);
-    const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+    const pathname = typeof window !== 'undefined' ? stripBase(window.location.pathname) : '';
 
     const surveySubItems = [
         { label: 'Exterior', href: '/client/survey/exterior' },
@@ -103,7 +104,7 @@ export function Sidebar() {
                 <div className="p-6 border-b border-gray-100">
                     <div className="flex items-center gap-4">
                         <div className="h-10 w-12 flex items-center justify-center overflow-hidden">
-                            <img src="/logo_SRP.png" alt="SRP" className="h-8 w-auto object-contain" />
+                            <img src={withBase('/logo_SRP.png')} alt="SRP" className="h-8 w-auto object-contain" />
                         </div>
                         <div>
                             <h2 className="font-black text-xs text-gray-900 leading-tight tracking-tighter uppercase font-inter">Strata Reserve</h2>
@@ -156,7 +157,7 @@ export function Sidebar() {
                                                 {surveySubItems.map((sub) => (
                                                     <li key={sub.href}>
                                                         <a
-                                                            href={sub.href}
+                                                            href={withBase(sub.href)}
                                                             className={`block px-4 py-2 rounded-lg text-xs font-bold transition-colors ${pathname === sub.href
                                                                 ? 'text-[#6B8E5F] bg-[#6B8E5F]/5'
                                                                 : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
@@ -175,7 +176,7 @@ export function Sidebar() {
                             return (
                                 <li key={item.href}>
                                     <a
-                                        href={item.href}
+                                        href={withBase(item.href)}
                                         className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all group ${isActive
                                             ? 'bg-[#6B8E5F] text-white shadow-md shadow-[#6B8E5F]/20'
                                             : 'text-gray-500 hover:bg-gray-50'
@@ -198,7 +199,7 @@ export function Sidebar() {
                     <Button
                         variant="ghost"
                         className="w-full justify-start h-12 rounded-xl text-gray-500 hover:bg-[#6B8E5F]/5 hover:text-[#6B8E5F] font-bold gap-4 px-5"
-                        onClick={() => window.location.href = '/notifications'}
+                        onClick={() => window.location.href = withBase('/notifications')}
                     >
                         <div className="relative">
                             <Bell className="h-5 w-5 text-gray-400 group-hover:text-[#6B8E5F]" />
@@ -214,7 +215,7 @@ export function Sidebar() {
                         className="w-full justify-start h-12 rounded-xl text-red-400 hover:text-red-500 hover:bg-red-50/50 font-black gap-4 px-5 transition-colors"
                         onClick={() => {
                             logout();
-                            window.location.href = '/';
+                            window.location.href = withBase('/');
                         }}
                     >
                         <LogOut className="h-5 w-5" />

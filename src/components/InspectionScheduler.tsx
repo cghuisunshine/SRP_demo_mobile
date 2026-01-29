@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
+import { withBase } from '@/lib/base';
 
 interface Slot {
     date: string;
@@ -22,7 +23,10 @@ export function InspectionScheduler() {
 
     // In a real app, we check if all mandatory docs are 'reviewed'
     const mandatoryDocs = documents.filter((d: any) => d.category === 'mandatory');
-    const allApproved = mandatoryDocs.length > 0 && mandatoryDocs.every((d: any) => d.status === 'reviewed');
+    // Demo mode: treat uploaded docs as approved so the workflow can be showcased without staff review.
+    const allApproved =
+        mandatoryDocs.length > 0 &&
+        mandatoryDocs.every((d: any) => d.status === 'reviewed' || d.status === 'uploaded');
 
     const isLocked = !allApproved;
 
@@ -86,7 +90,7 @@ export function InspectionScheduler() {
                     </div>
                     <Button
                         variant="outline"
-                        onClick={() => window.location.href = '/client/documents'}
+                        onClick={() => window.location.href = withBase('/client/documents')}
                         className="text-[#6B8E5F] border-[#6B8E5F] hover:bg-[#6B8E5F]/5"
                     >
                         Review Document Status
@@ -122,7 +126,7 @@ export function InspectionScheduler() {
                         ))}
                     </div>
                     <Button
-                        onClick={() => window.location.href = '/client/dashboard'}
+                        onClick={() => window.location.href = withBase('/client/dashboard')}
                         className="bg-[#6B8E5F] hover:bg-[#5a7850] px-8"
                     >
                         Done

@@ -5,12 +5,14 @@ import { getEntry } from 'astro:content';
 
 const entry = await getEntry('documents', 'requirements');
 const categories = entry?.data?.categories || [];
+
+const base = import.meta.env.BASE_URL;
 ---
 
 <DashboardLayout title="Document Center - Strata Reserve Planning">
   <div class="p-8">
     <div class="mb-8 max-w-5xl mx-auto">
-        <a href="/client/dashboard" class="text-sm font-medium text-[#6B8E5F] hover:underline mb-2 block">← Back to Hub</a>
+        <a href={`${base}client/dashboard`} class="text-sm font-medium text-[#6B8E5F] hover:underline mb-2 block">← Back to Hub</a>
         <h1 class="text-4xl font-bold text-gray-900 mb-2">{entry?.data?.title || 'Mandatory Documents'}</h1>
         <p class="text-lg text-gray-600">{entry?.data?.description || 'Please provide the documents required for review.'}</p>
     </div>

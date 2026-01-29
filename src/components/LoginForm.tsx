@@ -13,6 +13,7 @@ import { Label } from './ui/label'
 import { Button } from './ui/button'
 import { Alert, AlertDescription } from './ui/alert'
 import { useStore } from '@/lib/store'
+import { withBase } from '@/lib/base'
 
 export function LoginForm() {
   const [email, setEmail] = useState('')
@@ -31,11 +32,11 @@ export function LoginForm() {
     if (success) {
       const user = useStore.getState().auth.currentUser
       if (user?.role === 'admin') {
-        window.location.href = '/admin/dashboard'
+        window.location.href = withBase('/admin/dashboard')
       } else if (user?.role === 'inspector') {
-        window.location.href = '/inspector/dashboard'
+        window.location.href = withBase('/inspector/dashboard')
       } else {
-        window.location.href = '/client/dashboard'
+        window.location.href = withBase('/client/dashboard')
       }
     } else {
       setError('Invalid email or password. Please try again.')
@@ -114,7 +115,7 @@ export function LoginForm() {
 
           <div className="text-center">
             <a
-              href="/forgot-password"
+              href={withBase('/forgot-password')}
               title="reset password"
               className="text-[8px] font-black uppercase tracking-widest text-[#6B8E5F] opacity-60 hover:underline"
             >
@@ -161,7 +162,7 @@ export function LoginForm() {
                   onClick={async () => {
                     setEmail(role.email)
                     await login(role.email, role.pass)
-                    window.location.href = role.href
+                    window.location.href = withBase(role.href)
                   }}
                 >
                   {role.label}

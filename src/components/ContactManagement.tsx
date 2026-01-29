@@ -15,6 +15,7 @@ import {
     Briefcase
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { withBase } from '@/lib/base';
 
 interface Contact {
     id: string;
@@ -204,7 +205,7 @@ export function ContactManagement() {
             </div>
 
             <div className="flex justify-between items-center pt-8 border-t border-gray-100">
-                <Button variant="ghost" onClick={() => window.location.href = '/client/dashboard'} className="text-gray-400">
+                <Button variant="ghost" onClick={() => window.location.href = withBase('/client/dashboard')} className="text-gray-400">
                     Cancel and Return
                 </Button>
                 <Button

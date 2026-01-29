@@ -13,6 +13,8 @@ import {
     Trash2
 } from 'lucide-react';
 import { Input } from './ui/input';
+import { useStore } from '@/lib/store';
+import { withBase } from '@/lib/base';
 
 interface DocCategory {
     id: string;
@@ -27,10 +29,25 @@ interface DocumentCenterProps {
 }
 
 export function DocumentCenter({ initialCategories = [] }: DocumentCenterProps) {
+    const { auth, documents: storeDocs, addDocument, updateDocument, getCurrentUserServiceRequest } = useStore();
+
+    const getPersistedStatus = (id: string): DocCategory['status'] => {
+        try {
+            const raw = localStorage.getItem('srp-mock-db-v1');
+            if (!raw) return 'pending';
+            const parsed = JSON.parse(raw) as any;
+            const status = parsed?.docStatusById?.[id];
+            if (status === 'uploaded' || status === 'pending' || status === 'n/a') return status;
+            return 'pending';
+        } catch {
+            return 'pending';
+        }
+    };
+
     const [docs, setDocs] = useState<DocCategory[]>(() =>
         initialCategories.map(c => ({
             ...c,
-            status: 'pending'
+            status: typeof window !== 'undefined' ? getPersistedStatus(c.id) : 'pending'
         } as DocCategory))
     );
     const [search, setSearch] = useState('');
@@ -41,10 +58,37 @@ export function DocumentCenter({ initialCategories = [] }: DocumentCenterProps) 
         if (initialCategories.length > 0 && docs.length === 0) {
             setDocs(initialCategories.map(c => ({
                 ...c,
-                status: 'pending'
+                status: typeof window !== 'undefined' ? getPersistedStatus(c.id) : 'pending'
             } as DocCategory)));
         }
     }, [initialCategories]);
+
+    // Seed global document state so other pages (e.g. scheduler) can reflect progress.
+    useEffect(() => {
+        const currentUserId = auth.currentUser?.id || 'user-client-1';
+        const serviceRequestId = getCurrentUserServiceRequest()?.id || 'req-1';
+
+        initialCategories.forEach((c: any) => {
+            const exists = storeDocs.some((d: any) => d.id === c.id);
+            if (exists) return;
+
+            addDocument({
+                id: c.id,
+                serviceRequestId,
+                name: c.name,
+                fileName: '',
+                documentType: c.name,
+                category: c.type === 'mandatory' ? 'mandatory' : 'if_available',
+                status: (typeof window !== 'undefined' ? getPersistedStatus(c.id) : 'pending') === 'uploaded' ? 'uploaded' : 'pending',
+                uploadedBy: currentUserId,
+                uploadedAt: undefined,
+                reviewedBy: undefined,
+                reviewedAt: undefined,
+                fileSize: undefined,
+                mimeType: undefined,
+            } as any);
+        });
+    }, [initialCategories, storeDocs, auth.currentUser?.id, addDocument, getCurrentUserServiceRequest]);
 
     const filteredDocs = useMemo(() => {
         return docs.filter(d =>
@@ -77,6 +121,8 @@ export function DocumentCenter({ initialCategories = [] }: DocumentCenterProps) 
             setDocs(prev => prev.map(d =>
                 d.id === id ? { ...d, status: 'uploaded' as const } : d
             ));
+
+            updateDocument(id, { status: 'uploaded', uploadedAt: new Date().toISOString() } as any);
             await persistDocStatus(id, 'uploaded');
             setUploadingId(null);
         }, 1500);
@@ -86,6 +132,8 @@ export function DocumentCenter({ initialCategories = [] }: DocumentCenterProps) 
         setDocs(prev => prev.map(d =>
             d.id === id ? { ...d, status: 'n/a' as const } : d
         ));
+        // Treat N/A as reviewed in the global state (it should not block the demo).
+        updateDocument(id, { status: 'reviewed' } as any);
         await persistDocStatus(id, 'n/a');
     };
 
@@ -93,6 +141,7 @@ export function DocumentCenter({ initialCategories = [] }: DocumentCenterProps) 
         setDocs(prev => prev.map(d =>
             d.id === id ? { ...d, status: 'pending' as const } : d
         ));
+        updateDocument(id, { status: 'pending' } as any);
         await persistDocStatus(id, 'pending');
     };
 
@@ -196,7 +245,7 @@ export function DocumentCenter({ initialCategories = [] }: DocumentCenterProps) 
             </div>
 
             <div className="pt-8 flex justify-between items-center border-t border-gray-100">
-                <Button variant="ghost" onClick={() => window.location.href = '/client/dashboard'}>
+                <Button variant="ghost" onClick={() => window.location.href = withBase('/client/dashboard')}>
                     <ChevronLeft size={18} className="mr-2" />
                     Back to Hub
                 </Button>

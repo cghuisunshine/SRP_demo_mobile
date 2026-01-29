@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Wand2, ArrowLeft, Save, FileCheck } from 'lucide-react';
+import { withBase } from '@/lib/base';
 
 interface Finding {
     element: {
@@ -41,14 +42,14 @@ export function InspectionExecution({ jobId }: { jobId: string }) {
         setSaved(true);
         // In a real app, this would POST the findings back to the DB
         setTimeout(() => {
-            window.location.href = '/inspector/dashboard';
+            window.location.href = withBase('/inspector/dashboard');
         }, 1500);
     };
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
             <div className="flex items-center gap-4 mb-8">
-                <a href="/inspector/dashboard" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <a href={withBase('/inspector/dashboard')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                     <ArrowLeft className="text-gray-500" />
                 </a>
                 <div>

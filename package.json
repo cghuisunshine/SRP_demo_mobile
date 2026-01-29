@@ -7,6 +7,7 @@
     "dev:backend": "cargo watch -x run",
     "start": "cargo run --release",
     "build": "astro check && astro build && cargo build --release",
+    "build:pages": "astro check && astro build",
     "format": "prettier --write '**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}' && cargo fmt",
     "lint": "eslint 'src/**/*.{js,jsx,ts,tsx,astro}' && cargo clippy",
     "launch": "npm run build && npm start",
