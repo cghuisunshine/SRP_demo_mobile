@@ -42,6 +42,7 @@ interface AppState {
     fetchStrata: (id: string) => Promise<void>;
     updateStrata: (strata: Partial<Strata>) => Promise<void>;
     fetchUsers: () => Promise<void>;
+    fetchNotifications: () => Promise<void>;
 
     // Actions
     updateServiceRequest: (id: string, updates: Partial<ServiceRequest>) => Promise<void>;
@@ -225,6 +226,17 @@ export const useStore = create<AppState>()(
                 }
             },
 
+            fetchNotifications: async () => {
+                try {
+                    const response = await fetch('/api/notifications');
+                    if (!response.ok) return;
+                    const data = await response.json();
+                    set({ notifications: data });
+                } catch {
+                    // In non-demo builds this endpoint may not exist.
+                }
+            },
+
             // Service Request Actions
             updateServiceRequest: async (id, updates) => {
                 set((state) => ({
@@ -348,6 +360,7 @@ export const useStore = create<AppState>()(
                 auth: state.auth,
                 surveyResponses: state.surveyResponses,
                 documents: state.documents,
+                appointments: state.appointments,
             } as any),
         }
     )

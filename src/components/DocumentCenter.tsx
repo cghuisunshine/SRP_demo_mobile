@@ -15,6 +15,7 @@ import {
 import { Input } from './ui/input';
 import { useStore } from '@/lib/store';
 import { withBase } from '@/lib/base';
+import { emitEmailEvent } from '@/lib/email';
 
 interface DocCategory {
     id: string;
@@ -29,7 +30,22 @@ interface DocumentCenterProps {
 }
 
 export function DocumentCenter({ initialCategories = [] }: DocumentCenterProps) {
-    const { auth, documents: storeDocs, addDocument, updateDocument, getCurrentUserServiceRequest } = useStore();
+    const { auth, documents: storeDocs, addDocument, updateDocument, getCurrentUserServiceRequest, getCurrentUserStrata } = useStore();
+
+    const strataPlan = getCurrentUserStrata()?.strataPlan || 'VIS 2345';
+
+    const markDocsCompleteOnce = async (nextDocs: DocCategory[]) => {
+        const mandatoryDone = nextDocs.filter((d) => d.type === 'mandatory').every((d) => d.status !== 'pending');
+        if (!mandatoryDone) return;
+        try {
+            const key = `srp-demo-docs-complete-sent:${strataPlan}`;
+            if (localStorage.getItem(key) === '1') return;
+            localStorage.setItem(key, '1');
+        } catch {
+            // ignore
+        }
+        await emitEmailEvent('documents_complete', { strataPlan });
+    };
 
     const getPersistedStatus = (id: string): DocCategory['status'] => {
         try {
@@ -118,23 +134,37 @@ export function DocumentCenter({ initialCategories = [] }: DocumentCenterProps) 
         setUploadingId(id);
         // Mock upload delay
         setTimeout(async () => {
-            setDocs(prev => prev.map(d =>
-                d.id === id ? { ...d, status: 'uploaded' as const } : d
-            ));
+            let nextDocs: DocCategory[] = [];
+            setDocs((prev) => {
+                nextDocs = prev.map((d) => (d.id === id ? { ...d, status: 'uploaded' as const } : d));
+                return nextDocs;
+            });
 
             updateDocument(id, { status: 'uploaded', uploadedAt: new Date().toISOString() } as any);
             await persistDocStatus(id, 'uploaded');
+
+            const doc = nextDocs.find((d) => d.id === id);
+            await emitEmailEvent('document_uploaded', {
+                strataPlan,
+                documentId: id,
+                documentName: doc?.name || id,
+            });
+            await markDocsCompleteOnce(nextDocs);
+
             setUploadingId(null);
         }, 1500);
     };
 
     const handleNA = async (id: string) => {
-        setDocs(prev => prev.map(d =>
-            d.id === id ? { ...d, status: 'n/a' as const } : d
-        ));
+        let nextDocs: DocCategory[] = [];
+        setDocs((prev) => {
+            nextDocs = prev.map((d) => (d.id === id ? { ...d, status: 'n/a' as const } : d));
+            return nextDocs;
+        });
         // Treat N/A as reviewed in the global state (it should not block the demo).
         updateDocument(id, { status: 'reviewed' } as any);
         await persistDocStatus(id, 'n/a');
+        await markDocsCompleteOnce(nextDocs);
     };
 
     const handleReset = async (id: string) => {

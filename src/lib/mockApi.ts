@@ -55,6 +55,29 @@ type MockDb = {
     created_at: number;
   }>;
   notesNextId: number;
+
+  notifications: Array<{
+    id: string;
+    userId: string;
+    title: string;
+    message: string;
+    type: 'info' | 'warning' | 'error' | 'success';
+    read: boolean;
+    createdAt: string;
+  }>;
+
+  emailOutbox: Array<{
+    id: string;
+    to: string[];
+    cc?: string[];
+    subject: string;
+    body: string;
+    eventType: string;
+    createdAt: string;
+  }>;
+
+  emailNextId: number;
+  notificationNextId: number;
   authUserId?: string;
 };
 
@@ -161,6 +184,13 @@ function defaultDb(): MockDb {
       password: 'admin123',
       role: 'admin',
     },
+    {
+      id: 'user-assistant-1',
+      name: 'SRP Assistant',
+      email: 'assistant@srp.com',
+      password: 'assistant123',
+      role: 'assistant',
+    },
   ];
 
   const serviceRequests: MockDb['serviceRequests'] = [
@@ -213,7 +243,170 @@ function defaultDb(): MockDb {
     },
     notes,
     notesNextId: 2,
+    notifications: [],
+    emailOutbox: [],
+    emailNextId: 1,
+    notificationNextId: 1,
     authUserId: 'user-client-1',
+  };
+}
+
+function newId(prefix: string): string {
+  const rand = Math.random().toString(16).slice(2, 10);
+  return `${prefix}-${Date.now()}-${rand}`;
+}
+
+function findStaffRecipients(db: MockDb): string[] {
+  const staff = db.users.filter((u) => u.role === 'admin' || u.role === 'assistant');
+  return staff.map((u) => u.email);
+}
+
+function findClientRecipient(db: MockDb): string | null {
+  const user = db.users.find((u) => u.id === db.authUserId);
+  return user?.email ?? null;
+}
+
+function pushNotification(
+  db: MockDb,
+  notif: Omit<MockDb['notifications'][number], 'id' | 'createdAt' | 'read'> & {
+    id?: string;
+    createdAt?: string;
+    read?: boolean;
+  },
+) {
+  const createdAt = notif.createdAt ?? nowIso();
+  const id = notif.id ?? newId('notif');
+  const read = notif.read ?? false;
+  db.notifications.unshift({
+    id,
+    userId: notif.userId,
+    title: notif.title,
+    message: notif.message,
+    type: notif.type,
+    read,
+    createdAt,
+  });
+}
+
+function emitEmail(
+  db: MockDb,
+  email: Omit<MockDb['emailOutbox'][number], 'id' | 'createdAt'> & {
+    id?: string;
+    createdAt?: string;
+  },
+) {
+  const createdAt = email.createdAt ?? nowIso();
+  const id = email.id ?? newId('email');
+
+  const base: MockDb['emailOutbox'][number] = {
+    id,
+    to: email.to,
+    subject: email.subject,
+    body: email.body,
+    eventType: email.eventType,
+    createdAt,
+  };
+
+  if (email.cc && email.cc.length > 0) {
+    base.cc = email.cc;
+  }
+
+  db.emailOutbox.unshift(base);
+}
+
+function formatSlots(slots: Array<{ date: string; time: string }>): string {
+  return slots
+    .map((s, idx) => {
+      const label = idx === 0 ? 'First choice' : idx === 1 ? 'Alternate' : `Choice ${idx + 1}`;
+      return `${label}: ${s.date} ${s.time}`;
+    })
+    .join('\n');
+}
+
+function templateEmail(eventType: string, payload: JsonRecord) {
+  const strataPlan = String(payload.strataPlan ?? 'VIS 2345');
+
+  if (eventType === 'timeline_confirmed') {
+    const draftDeadline = String(payload.draftDeadline ?? '');
+    const nextAgm = String(payload.nextProjectedAgm ?? '');
+    return {
+      subject: `[SRP] Timelines confirmed — ${strataPlan}`,
+      body:
+        `We received your timeline confirmation for ${strataPlan}.\n\n` +
+        (nextAgm ? `Next projected AGM: ${nextAgm}\n` : '') +
+        (draftDeadline ? `Draft deadline: ${draftDeadline}\n` : '') +
+        `\nNext step: complete surveys and upload required documents.`,
+      type: 'info' as const,
+    };
+  }
+
+  if (eventType === 'document_uploaded') {
+    const docName = String(payload.documentName ?? payload.documentId ?? 'Document');
+    return {
+      subject: `[SRP] Document received — ${docName} (${strataPlan})`,
+      body: `We received "${docName}" for ${strataPlan}.\n\nStatus: Uploaded\nNext step: upload remaining required documents (if any).`,
+      type: 'success' as const,
+    };
+  }
+
+  if (eventType === 'documents_complete') {
+    return {
+      subject: `[SRP] All required documents received — ${strataPlan}`,
+      body: `All mandatory documents are complete for ${strataPlan}.\n\nNext step: schedule the inspection date.`,
+      type: 'success' as const,
+    };
+  }
+
+  if (eventType === 'survey_submitted') {
+    const sectionId = String(payload.sectionId ?? 'survey');
+    return {
+      subject: `[SRP] Survey submitted — ${sectionId} (${strataPlan})`,
+      body: `We received your survey submission for section "${sectionId}" (${strataPlan}).\n\nNext step: continue with remaining sections as applicable.`,
+      type: 'success' as const,
+    };
+  }
+
+  if (eventType === 'inspection_preferences_submitted') {
+    const slots = Array.isArray(payload.slots) ? (payload.slots as any[]) : [];
+    const formatted = formatSlots(
+      slots.map((s) => ({ date: String(s.date ?? ''), time: String(s.time ?? '') })),
+    );
+    return {
+      subject: `[SRP] Inspection date preferences received — ${strataPlan}`,
+      body:
+        `We received your inspection date preferences for ${strataPlan}.\n\n` +
+        (formatted ? `${formatted}\n\n` : '') +
+        `Our staff will confirm the final date and notify you.`,
+      type: 'info' as const,
+    };
+  }
+
+  if (eventType === 'appointment_confirmed') {
+    const confirmedDate = String(payload.confirmedDate ?? '');
+    const confirmedTime = String(payload.confirmedTime ?? '');
+    return {
+      subject: `[SRP] Appointment confirmed — ${strataPlan}`,
+      body:
+        `Your appointment has been confirmed for ${strataPlan}.\n\n` +
+        (confirmedDate ? `Date: ${confirmedDate}\n` : '') +
+        (confirmedTime ? `Time: ${confirmedTime}\n` : '') +
+        `\nIf you need to reschedule, please contact SRP staff.`,
+      type: 'success' as const,
+    };
+  }
+
+  if (eventType === 'inspection_completed') {
+    return {
+      subject: `[SRP] Inspection completed — ${strataPlan}`,
+      body: `Inspection findings have been saved for ${strataPlan}.\n\nNext step: SRP will proceed with drafting and coordination.`,
+      type: 'success' as const,
+    };
+  }
+
+  return {
+    subject: `[SRP] Update — ${strataPlan}`,
+    body: 'An update has been recorded in the SRP portal.',
+    type: 'info' as const,
   };
 }
 
@@ -445,6 +638,84 @@ async function handleApi(req: Request): Promise<Response | null> {
   if (!path.startsWith('/api/')) return null;
 
   const db = loadDb();
+
+  // --- Email / Notifications ---
+  if (path === '/api/email-outbox' && req.method === 'GET') {
+    // Demo: show to staff only (admin/assistant)
+    const current = db.users.find((u) => u.id === db.authUserId);
+    if (!current) return unauthorized();
+    if (current.role !== 'admin' && current.role !== 'assistant') return unauthorized();
+    return jsonResponse(db.emailOutbox);
+  }
+
+  if (path === '/api/notifications' && req.method === 'GET') {
+    const current = db.users.find((u) => u.id === db.authUserId);
+    if (!current) return unauthorized();
+    const list = db.notifications.filter((n) => n.userId === current.id);
+    return jsonResponse(list);
+  }
+
+  if (path === '/api/notifications/read' && req.method === 'PUT') {
+    const current = db.users.find((u) => u.id === db.authUserId);
+    if (!current) return unauthorized();
+    const body = (await req.json().catch(() => ({}))) as JsonRecord;
+    const id = String(body.id ?? '');
+    if (!id) return jsonResponse({ error: 'Invalid payload' }, 400);
+    const idx = db.notifications.findIndex((n) => n.id === id && n.userId === current.id);
+    if (idx === -1) return notFound();
+    const existing = db.notifications[idx];
+    if (!existing) return notFound();
+    db.notifications[idx] = { ...existing, read: true };
+    saveDb(db);
+    return new Response(null, { status: 200 });
+  }
+
+  if (path === '/api/email/emit' && req.method === 'POST') {
+    const body = (await req.json().catch(() => ({}))) as JsonRecord;
+    const eventType = String(body.eventType ?? '');
+    const payload = (body.payload ?? {}) as JsonRecord;
+
+    if (!eventType) return jsonResponse({ error: 'Invalid payload' }, 400);
+
+    const tmpl = templateEmail(eventType, payload);
+    const staffTo = findStaffRecipients(db);
+    const clientTo = findClientRecipient(db);
+
+    // Email outbox (staff-visible): always includes staff recipients
+    emitEmail(db, {
+      to: staffTo,
+      subject: tmpl.subject,
+      body: tmpl.body,
+      eventType,
+    });
+
+    // Inbox notifications (staff)
+    const staffUsers = db.users.filter((u) => u.role === 'admin' || u.role === 'assistant');
+    staffUsers.forEach((u) => {
+      pushNotification(db, {
+        userId: u.id,
+        title: tmpl.subject,
+        message: tmpl.body,
+        type: tmpl.type,
+      });
+    });
+
+    // Inbox notification (client)
+    if (clientTo) {
+      const clientUser = db.users.find((u) => u.email === clientTo);
+      if (clientUser) {
+        pushNotification(db, {
+          userId: clientUser.id,
+          title: tmpl.subject,
+          message: tmpl.body,
+          type: tmpl.type,
+        });
+      }
+    }
+
+    saveDb(db);
+    return jsonResponse({ status: 'ok' });
+  }
 
   // --- /api/time/ ---
   if (path === '/api/time/' && req.method === 'GET') {

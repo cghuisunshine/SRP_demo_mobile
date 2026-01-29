@@ -5,6 +5,7 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Search, Calendar, XCircle } from 'lucide-react';
+import { emitEmailEvent } from '@/lib/email';
 
 const statusColors: Record<string, string> = {
     'pending': 'bg-yellow-50 text-yellow-600',
@@ -14,8 +15,21 @@ const statusColors: Record<string, string> = {
 };
 
 export function AppointmentManagement() {
-    const { appointments, fetchRequests } = useStore(); // We'll assume appointments are fetched with requests or separately
+    const { appointments, fetchRequests, updateAppointment } = useStore(); // We'll assume appointments are fetched with requests or separately
     const [search, setSearch] = useState('');
+
+    const confirm = async (id: string, strataPlan: string, date: string, time: string) => {
+        await updateAppointment(id, {
+            status: 'confirmed',
+            confirmedDate: date,
+            confirmedTime: time,
+        } as any);
+        await emitEmailEvent('appointment_confirmed', {
+            strataPlan,
+            confirmedDate: date,
+            confirmedTime: time,
+        });
+    };
 
     useEffect(() => {
         // In a real app we'd have fetchAppointments()
@@ -80,7 +94,12 @@ export function AppointmentManagement() {
                                     </td>
                                     <td className="px-6 py-4 text-right whitespace-nowrap">
                                         <div className="flex justify-end gap-2">
-                                            <Button variant="outline" size="sm" className="h-8 border-[#6B8E5F]/20 text-[#6B8E5F] hover:bg-[#6B8E5F]/5 font-bold text-xs gap-2 px-3 rounded-lg">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 border-[#6B8E5F]/20 text-[#6B8E5F] hover:bg-[#6B8E5F]/5 font-bold text-xs gap-2 px-3 rounded-lg"
+                                                onClick={() => confirm(a.id, a.strataPlan, a.requestedDate1, String(a.requestedTime1))}
+                                            >
                                                 Confirm
                                             </Button>
                                             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-300 hover:text-red-400 hover:bg-red-50 rounded-lg">

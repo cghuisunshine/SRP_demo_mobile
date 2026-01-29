@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Wand2, ArrowLeft, Save, FileCheck } from 'lucide-react';
 import { withBase } from '@/lib/base';
+import { emitEmailEvent } from '@/lib/email';
 
 interface Finding {
     element: {
@@ -42,6 +43,7 @@ export function InspectionExecution({ jobId }: { jobId: string }) {
         setSaved(true);
         // In a real app, this would POST the findings back to the DB
         setTimeout(() => {
+            emitEmailEvent('inspection_completed', { strataPlan: 'VIS 2345', jobId }).catch(() => undefined);
             window.location.href = withBase('/inspector/dashboard');
         }, 1500);
     };

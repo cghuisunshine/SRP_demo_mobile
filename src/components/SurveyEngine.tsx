@@ -9,6 +9,7 @@ import { Progress } from './ui/progress';
 import { ChevronLeft, Save, CheckCircle2 } from 'lucide-react';
 import type { SurveyQuestion } from '@/lib/types';
 import { withBase } from '@/lib/base';
+import { emitEmailEvent } from '@/lib/email';
 
 interface SurveyEngineProps {
     sectionId: string;
@@ -16,7 +17,7 @@ interface SurveyEngineProps {
 }
 
 export function SurveyEngine({ sectionId, initialQuestions = [] }: SurveyEngineProps) {
-    const { fetchHubStatus } = useStore();
+    const { fetchHubStatus, getCurrentUserStrata } = useStore();
 
     // Map Astro Content Collection format to our UI format
     const mappedQuestions = useMemo(() => {
@@ -99,6 +100,10 @@ export function SurveyEngine({ sectionId, initialQuestions = [] }: SurveyEngineP
             if (response.ok) {
                 setIsComplete(true);
                 fetchHubStatus();
+                await emitEmailEvent('survey_submitted', {
+                    strataPlan: getCurrentUserStrata()?.strataPlan || 'VIS 2345',
+                    sectionId,
+                });
             }
         } catch (error) {
             console.error('Failed to save answers:', error);

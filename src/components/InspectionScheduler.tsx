@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
 import { withBase } from '@/lib/base';
+import { emitEmailEvent } from '@/lib/email';
 
 interface Slot {
     date: string;
@@ -19,7 +20,7 @@ interface Slot {
 }
 
 export function InspectionScheduler() {
-    const { documents } = useStore();
+    const { documents, addAppointment, getCurrentUserServiceRequest, getCurrentUserStrata } = useStore();
 
     // In a real app, we check if all mandatory docs are 'reviewed'
     const mandatoryDocs = documents.filter((d: any) => d.category === 'mandatory');
@@ -71,8 +72,42 @@ export function InspectionScheduler() {
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setStatus('submitted');
+
+        const strataPlan = getCurrentUserStrata()?.strataPlan || 'VIS 2345';
+        const serviceRequestId = getCurrentUserServiceRequest()?.id || 'req-1';
+
+        const mapTime = (t: string): '10:00' | '14:00' | '18:00' => {
+            const s = t.toLowerCase();
+            if (s.includes('10')) return '10:00';
+            if (s.includes('2') || s.includes('14')) return '14:00';
+            return '18:00';
+        };
+
+        const first = selectedSlots[0];
+        const alt = selectedSlots[1];
+
+        if (first) {
+            await addAppointment({
+                id: `appt-${Date.now()}`,
+                serviceRequestId,
+                strataPlan,
+                appointmentType: 'inspection',
+                requestedDate1: first.date,
+                requestedTime1: mapTime(first.time),
+                requestedDate2: alt?.date,
+                requestedTime2: alt ? mapTime(alt.time) : undefined,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            } as any);
+        }
+
+        await emitEmailEvent('inspection_preferences_submitted', {
+            strataPlan,
+            slots: selectedSlots,
+        });
     };
 
     if (isLocked) {

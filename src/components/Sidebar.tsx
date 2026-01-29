@@ -53,7 +53,7 @@ export function Sidebar() {
     ];
 
     const navItems =
-        user.role === 'admin' ? adminNav :
+        (user.role === 'admin' || user.role === 'assistant') ? adminNav :
             user.role === 'inspector' ? inspectorNav :
                 clientNav;
 

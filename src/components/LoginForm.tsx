@@ -31,7 +31,7 @@ export function LoginForm() {
     const success = await login(email, password)
     if (success) {
       const user = useStore.getState().auth.currentUser
-      if (user?.role === 'admin') {
+      if (user?.role === 'admin' || user?.role === 'assistant') {
         window.location.href = withBase('/admin/dashboard')
       } else if (user?.role === 'inspector') {
         window.location.href = withBase('/inspector/dashboard')

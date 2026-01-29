@@ -6,9 +6,10 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Calendar } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { emitEmailEvent } from '@/lib/email';
 
 export function Timelines() {
-    const { calculateTimeline } = useStore();
+    const { calculateTimeline, getCurrentUserStrata } = useStore();
     const [formData, setFormData] = useState({
         file_opened: new Date().toISOString().split('T')[0],
         fiscal_year_start_month: 1,
@@ -149,7 +150,17 @@ export function Timelines() {
                                 </CardContent>
                             </Card>
 
-                            <Button className="w-full bg-[#6B8E5F] text-white hover:bg-[#5a7850] py-6 text-lg font-bold">
+                            <Button
+                                className="w-full bg-[#6B8E5F] text-white hover:bg-[#5a7850] py-6 text-lg font-bold"
+                                onClick={async () => {
+                                    const strataPlan = getCurrentUserStrata()?.strataPlan || 'VIS 2345';
+                                    await emitEmailEvent('timeline_confirmed', {
+                                        strataPlan,
+                                        nextProjectedAgm: results.next_projected_agm,
+                                        draftDeadline: results.draft_deadline,
+                                    });
+                                }}
+                            >
                                 Confirm Timelines
                             </Button>
                         </>
